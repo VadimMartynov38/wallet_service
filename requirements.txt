@@ -29,5 +29,4 @@ starlette==1.6.0
 typing-inspection==0.4.4
 typing_extensions==4.16.0
 uvicorn==0.52.4
-# Editable install with no version control (wallet_service==0.1.0)
--e /home/user/Downloads/wallet_service
+-e .
