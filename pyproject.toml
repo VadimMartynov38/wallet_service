@@ -1,2 +1,20 @@
-[tool.pytest]
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wallet_service"
+version = "0.1.0"
+dependencies = [
+    "fastapi",
+    "sqlalchemy",
+    "asyncpg",
+    "httpx"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
+[tool.pytest.ini_options]
 asyncio_mode = "auto"
