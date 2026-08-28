@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Кошелёк: баланс и операции</title>
+  <style>
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    nav button { margin-right: 8px; padding: 8px 16px; cursor: pointer; }
+    label { display: block; margin-bottom: 4px; }
+    input, select { margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Управление кошельком</h1>
+
+  <nav>
+    <button onclick="switchTab('change')">Изменить баланс</button>
+    <button onclick="switchTab('check')">Проверить баланс</button>
+    <button onclick="switchTab('create')">Создать кошелёк</button>
+  </nav>
+
+  <!-- Вкладка: изменение баланса -->
+  <div id="tab-change" class="tab-content active">
+    <h2>Изменение баланса</h2>
+    <form id="changeForm">
+      <label>UUID: <input type="text" id="changeUuid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" required /></label>
+      <label>Тип:
+        <select id="changeType">
+          <option value="DEPOSIT">DEPOSIT</option>
+          <option value="WITHDRAW">WITHDRAW</option>
+        </select>
+      </label>
+      <label>Сумма: <input type="number" id="changeAmount" step="0.01" min="0.01" required /></label>
+      <button type="submit">Выполнить операцию</button>
+    </form>
+    <div id="changeResult"></div>
+  </div>
+
+  <!-- Вкладка: получение баланса -->
+  <div id="tab-check" class="tab-content">
+    <h2>Баланс кошелька</h2>
+    <form id="checkForm">
+      <label>UUID: <input type="text" id="checkUuid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" required /></label>
+      <button type="submit">Получить баланс</button>
+    </form>
+    <div id="checkResult"></div>
+  </div>
+
+  <!-- Вкладка: создать кошелёк -->
+  <div id="tab-create" class="tab-content">
+    <h2>Создать новый кошелёк</h2>
+    <form id="createForm">
+      <p>Новый кошелёк создаётся с балансом 0.</p>
+      <button type="submit">Создать кошелёк</button>
+    </form>
+    <div id="createResult"></div>
+  </div>
+
+  <script>
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('nav button').forEach(btn => btn.style.fontWeight = 'normal');
+
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+      event.target.style.fontWeight = 'bold';
+    }
+
+    // Вспомогательная функция для очистки полей формы
+    function clearFormFields(formId) {
+      const form = document.getElementById(formId);
+      if (!form) return;
+      // Сбрасываем все input/select в форме
+      form.reset();
+    }
+
+    // Логика изменения баланса
+    document.getElementById('changeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const resDiv = document.getElementById('changeResult');
+      resDiv.textContent = 'Отправка...';
+      resDiv.style.color = 'black';
+
+      const uuid = document.getElementById('changeUuid').value.trim();
+      const type = document.getElementById('changeType').value;
+      const amount = parseFloat(document.getElementById('changeAmount').value);
+
+      try {
+        const r = await fetch(`/api/v1/wallets/${uuid}/operation`, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({operation_type:type, amount})
+        });
+        const d = await r.json();
+        resDiv.style.color = r.ok ? 'green' : 'red';
+        resDiv.textContent = r.ok
+          ? `Успех: ${JSON.stringify(d)}`
+          : `Ошибка: ${d.detail || r.statusText}`;
+
+        // Очищаем поля после ответа (и при успехе, и при ошибке)
+        clearFormFields('changeForm');
+      } catch(e) {
+        resDiv.style.color='red';
+        resDiv.textContent='Сеть: '+e.message;
+        clearFormFields('changeForm');
+      }
+    });
+
+    // Логика получения баланса
+    document.getElementById('checkForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const resDiv = document.getElementById('checkResult');
+      resDiv.textContent = 'Загрузка...';
+      resDiv.style.color = 'black';
+      const uuid = document.getElementById('checkUuid').value.trim();
+
+      try {
+        const r = await fetch(`/api/v1/wallets/${uuid}`, {method:'GET',headers:{'Content-Type':'application/json'}});
+        const d = await r.json();
+        resDiv.style.color = r.ok ? 'green' : 'red';
+        resDiv.textContent = r.ok
+          ? `Баланс: ${d.balance}`
+          : `Ошибка: ${d.detail || r.statusText}`;
+
+        clearFormFields('checkForm');
+      } catch(e) {
+        resDiv.style.color='red';
+        resDiv.textContent='Сеть: '+e.message;
+        clearFormFields('checkForm');
+      }
+    });
+
+    // Логика создания кошелька
+    document.getElementById('createForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const resDiv = document.getElementById('createResult');
+      resDiv.textContent = 'Создание...';
+      resDiv.style.color = 'black';
+
+      try {
+        const r = await fetch('/api/v1/wallets', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'}
+        });
+        const d = await r.json();
+        resDiv.style.color = r.ok ? 'green' : 'red';
+        resDiv.textContent = r.ok
+          ? `Создан кошелёк: ${d.id} (баланс: ${d.balance})`
+          : `Ошибка: ${d.detail || r.statusText}`;
+
+        clearFormFields('createForm');
+      } catch(e) {
+        resDiv.style.color='red';
+        resDiv.textContent='Сеть: '+e.message;
+        clearFormFields('createForm');
+      }
+    });
+  </script>
+</body>
+</html>
