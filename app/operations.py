@@ -1,3 +1,4 @@
+from typing import cast
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,12 +14,14 @@ async def apply_operation(
     if not wallet:
         raise ValueError("Wallet not found")
 
+    current_balance = cast(int, wallet.balance)
     if op_type == "DEPOSIT":
-        wallet.balance += amount
+        current_balance += amount
     elif op_type == "WITHDRAW":
-        if wallet.balance < amount:
+        if current_balance < amount:
             raise ValueError("Insufficient funds")
-        wallet.balance -= amount
+        current_balance -= amount
 
+    wallet.balance = current_balance
     await session.commit()
-    return wallet.balance
+    return current_balance
