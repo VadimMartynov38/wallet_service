@@ -14,6 +14,7 @@ from app.main import app
 
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=False, future=True)
 
+
 @pytest.fixture(scope="session")
 async def setup_db():
     async with test_engine.begin() as conn:
@@ -22,6 +23,7 @@ async def setup_db():
     yield
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+
 
 @pytest.fixture
 async def db_session(setup_db):
@@ -33,6 +35,7 @@ async def db_session(setup_db):
     async with async_session() as session:
         yield session
 
+
 @pytest.fixture
 async def client(db_session):
     original_override = app.dependency_overrides.get(get_session)
@@ -43,7 +46,10 @@ async def client(db_session):
     app.dependency_overrides[get_session] = override_get_session
 
     from httpx import ASGITransport, AsyncClient
-    async with AsyncClient(transport=ASGITransport(app=app),base_url="http://test") as c:
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as c:
         yield c
 
     if original_override is not None:
