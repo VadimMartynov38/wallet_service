@@ -1,7 +1,8 @@
-from sqlalchemy import Column, String, Integer, DateTime, func
+from sqlalchemy import Column, DateTime, Integer, String, func
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
+
 
 class Wallet(Base):
     __tablename__ = "wallets"
