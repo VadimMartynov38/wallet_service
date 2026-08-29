@@ -1,10 +1,13 @@
 from datetime import datetime
+
 from sqlalchemy import func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy.types import String, Integer, DateTime
+from sqlalchemy.types import DateTime, Integer, String
+
 
 class Base(DeclarativeBase):
     pass
+
 
 class Wallet(Base):
     __tablename__ = "wallets"
