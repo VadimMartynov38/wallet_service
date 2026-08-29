@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_session
 from app.models import Wallet
 from app.operations import apply_operation
-from app.schemas import WalletCreate, WalletOperationRequest, WalletResponse
+from app.schemas import WalletOperationRequest, WalletResponse
 
 router = APIRouter(tags=["wallets"])
 
