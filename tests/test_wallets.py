@@ -1,6 +1,8 @@
 import asyncio
-import pytest
 import uuid
+
+import pytest
+
 
 @pytest.mark.asyncio
 async def test_create_wallet(client):
