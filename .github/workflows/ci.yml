@@ -41,7 +41,7 @@ jobs:
 
       - name: Run mypy
         run: |
-          mypy --config-file mypy.ini app
+          mypy app tests
 
       # Тесты: используем SQLite для быстрой проверки логики (включая транзакции и блокировки)
       - name: Run tests
