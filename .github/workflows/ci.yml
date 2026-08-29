@@ -1,0 +1,53 @@
+name: CI: lint + tests
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      # Устанавливаем зависимости для тестов (включая pytest, линтеры и БД)
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Run isort (check)
+        run: |
+          isort --profile black --check-only app tests
+
+      - name: Run black (check)
+        run: |
+          black --check app tests
+
+      - name: Run flake8
+        run: |
+          flake8 app tests
+
+      - name: Run mypy
+        run: |
+          mypy --config-file mypy.ini app
+
+      # Тесты: используем SQLite для быстрой проверки логики (включая транзакции и блокировки)
+      - name: Run tests
+        env:
+          TEST_DATABASE_URL: "sqlite+aiosqlite:///tests/test.db"
+        run: |
+          pytest -q
